@@ -3,43 +3,35 @@ An implementation of the Stonehenge game and its state.
 """
 from game import Game
 from game_state import GameState
-from typing import Any, List, Dict
+from typing import Any, List, Optional, Union
 
 
-def create_board_dict(n: int) -> Dict[str, Any]:
+def create_board_dict(n: int) -> List[List[Optional[str]]]:
     """
     Create a board of size n.
     """
     letters = [chr(i) for i in range(ord('A'), ord('Z') + 1)]
     number_of_cells = int((((n + 1) * (n + 2)) / 2) - 1 + n)
     cells = letters[:number_of_cells]
-    return {'size': n,
-            'cells': cells,
-            'ley_lines': [['@'] * (n + 1)] * 3}
-
-
-def create_ley_lines(cells: List[str], n: int) -> List[List[str]]:
-    """
-    Categorize cells into their coressponding ley-lines.
-
-    >>> create_ley_lines(['A', 'B', 'C'], 1)
-    [['@', ['A', 'B']], ['@', ['C']], ['@', ['A', 'C'], ['@', ['B']],
-    ['@', ['B', 'C']], ['@', ['A']]]
-    """
-    return_list = []
-    counter = 0
+    list_return = []
     for i in range(2, n + 2):
-        return_list.append(['@', cells[counter:counter + i]])
-        counter += i
-    return_list.append(['@', cells[len(cells) - n:]])
+        temp = []
+        for j in range(i):
+            temp.append(cells.pop(0))
+        list_return.append(temp)
+    list_return.append(cells)
+    return list_return
 
-    cells = ['C', 'A', 'B']
-    counter = 0
-    for i in range(2, n + 2):
-        return_list.append(['@', cells[counter:counter + i]])
-        counter += i
-    return_list.append(['@', cells[len(cells) - n:]])
-    return return_list
+
+def score(line: List[Union[str, int]]) -> Optional[int]:
+    """
+    Return if player 1, 2, or none of them captured the ley-line line.
+    """
+    if line.count(1) >= (len(line)) / 2:
+        return 1
+    elif line.count(2) >= (len(line)) / 2:
+        return 2
+    return None
 
 
 class StonehengeGame(Game):
@@ -61,13 +53,22 @@ class StonehengeGame(Game):
         """
         Return the instructions for this Game.
         """
-        raise NotImplementedError
+        instructions = "Players take turns claiming cells. When a player " \
+                       "captures at least half of the cells in a ley-line, " \
+                       "then the player captures that ley-line. The first " \
+                       "player to capture at least half of the ley-lines is " \
+                       "the winner. A ley-line, once claimed, cannot be " \
+                       "taken by the other player."
+        return instructions
 
-    def is_over(self, state: GameState) -> bool:
+    def is_over(self, state: "StonehengeState") -> bool:
         """
         Return whether or not this game is over at state.
         """
-        raise NotImplementedError
+        ley_lines = state.get_ley_lines()
+        scores = [score(line) for line in ley_lines]
+        return (scores.count(1) >= (len(scores)) / 2) or (scores.count(2) >=
+                                                          (len(scores)) / 2)
 
     def is_winner(self, player: str) -> bool:
         """
@@ -75,27 +76,36 @@ class StonehengeGame(Game):
 
         Precondition: player is 'p1' or 'p2'.
         """
-        raise NotImplementedError
+        return (self.current_state.get_current_player_name() != player
+                and self.is_over(self.current_state))
 
     def str_to_move(self, string: str) -> Any:
         """
         Return the move that string represents. If string is not a move,
         return some invalid move.
         """
-        raise NotImplementedError
+        move = string.strip()
+        letters = [chr(i) for i in range(ord('A'), ord('Z') + 1)]
+        n = len(self.current_state.board[0]) - 1
+        number_of_cells = int((((n + 1) * (n + 2)) / 2) - 1 + n)
+        cells = letters[:number_of_cells]
+        if move in cells:
+            return move
+        return None
 
 
 class StonehengeState(GameState):
     """
     The state of Stonehenge at a certain point in time.
     """
-    def __init__(self, is_p1_turn: bool, board: Dict[str, str]) -> None:
+    def __init__(self, is_p1_turn: bool, board: List[List[Union[str, int, None]]], cells: str) -> None:
         """
         Initialize this game state and set the current player based on
         is_p1_turn.
         """
         super().__init__(is_p1_turn)
-        self.board = board
+        self.cells = cells
+        # self.board = self.create_board()
 
     def __str__(self) -> str:
         """
@@ -128,6 +138,13 @@ class StonehengeState(GameState):
         player can guarantee from state self.
         """
         raise NotImplementedError
+
+    def get_ley_lines(self) -> List[List[Union[str, int, None]]]:
+        """
+        Return a list of all the ley-lines in the board.
+        """
+        pass
+
 
 if __name__ == "__main__":
     from python_ta import check_all
