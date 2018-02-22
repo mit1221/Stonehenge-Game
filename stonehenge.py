@@ -3,12 +3,43 @@ An implementation of the Stonehenge game and its state.
 """
 from game import Game
 from game_state import GameState
-from typing import Any, Dict
+from typing import Any, List, Dict
 
 
-def create_board_dict(side_length: int) -> Dict[str, str]:
-    """Create a dictionary of the board based on side_length."""
+def create_board_dict(n: int) -> Dict[str, Any]:
+    """
+    Create a board of size n.
+    """
     letters = [chr(i) for i in range(ord('A'), ord('Z') + 1)]
+    number_of_cells = int((((n + 1) * (n + 2)) / 2) - 1 + n)
+    cells = letters[:number_of_cells]
+    return {'size': n,
+            'cells': cells,
+            'ley_lines': [['@'] * (n + 1)] * 3}
+
+
+def create_ley_lines(cells: List[str], n: int) -> List[List[str]]:
+    """
+    Categorize cells into their coressponding ley-lines.
+
+    >>> create_ley_lines(['A', 'B', 'C'], 1)
+    [['@', ['A', 'B']], ['@', ['C']], ['@', ['A', 'C'], ['@', ['B']],
+    ['@', ['B', 'C']], ['@', ['A']]]
+    """
+    return_list = []
+    counter = 0
+    for i in range(2, n + 2):
+        return_list.append(['@', cells[counter:counter + i]])
+        counter += i
+    return_list.append(['@', cells[len(cells) - n:]])
+
+    cells = ['C', 'A', 'B']
+    counter = 0
+    for i in range(2, n + 2):
+        return_list.append(['@', cells[counter:counter + i]])
+        counter += i
+    return_list.append(['@', cells[len(cells) - n:]])
+    return return_list
 
 
 class StonehengeGame(Game):
