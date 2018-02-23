@@ -1,9 +1,9 @@
 """
 An implementation of the Stonehenge game and its state.
 """
+from typing import Any, List, Dict, Optional, Union
 from game import Game
 from game_state import GameState
-from typing import Any, List, Dict, Optional, Union
 
 
 def score(line: List[Union[str, int]]) -> Optional[int]:
@@ -143,7 +143,8 @@ class StonehengeState(GameState):
         """
         raise NotImplementedError
 
-    def create_board(self) -> List[Dict[Union[str, int], List[Union[str, int]]]]:
+    def create_board(self) -> List[Dict[Union[str, int],
+                                        List[Union[str, int]]]]:
         """
         Create a board of size n.
         """
@@ -152,26 +153,49 @@ class StonehengeState(GameState):
     def get_ley_lines(self) -> List[List[Union[str, int]]]:
         """
         Return a list of all the ley-lines in the board.
-        """
-        ley_lines = self.create_rows()
-        rows = ley_lines[:]
 
-        # Extracting the / ley-lines
+        >>> a = StonehengeState(True, [chr(i) for i in range(ord('A'), \
+                                                             ord('M'))])
+        >>> a.get_ley_lines()
+        [['A', 'C', 'F'], ['B', 'D', 'G', 'J'], ['E', 'H', 'K'], ['I', 'L'], \
+['B', 'E', 'I'], ['A', 'D', 'H', 'L'], ['C', 'G', 'K'], ['F', 'J'], \
+['J', 'K', 'L'], ['F', 'G', 'H', 'I'], ['C', 'D', 'E'], ['A', 'B']]
+        >>> a = StonehengeState(True, [chr(i) for i in range(ord('A'), \
+                                                             ord('H'))])
+        >>> a.get_ley_lines()
+        [['A', 'C'], ['B', 'D', 'F'], ['E', 'G'], ['B', 'E'], ['A', 'D', 'G'], \
+['C', 'F'], ['F', 'G'], ['C', 'D', 'E'], ['A', 'B']]
+        >>> a = StonehengeState(True, [chr(i) for i in range(ord('A'), \
+                                                             ord('D'))])
+        >>> a.get_ley_lines()
+        [['A'], ['B', 'C'], ['B'], ['A', 'C'], ['C'], ['A', 'B']]
+        """
+        rows = self.extract_rows()
+        num_rows = len(rows)
+        ley_lines = []
+
+        # Extracting the / ley lines
         for i in range(self.size + 1):
             temp_list = []
-            for j in range(len(rows)):
-                if j != len(rows) - 1:
-                    try:
-                        temp_list.append(rows[j][i])
-                    except IndexError:
-                        pass
-                else:
-                    if i != 0:
-                        temp_list.append(rows[j][i-1])
+            for j in range(max(0, i - 1), num_rows - 1):
+                temp_list.append(rows[j][i])
+            if i != 0:
+                temp_list.append(rows[num_rows - 1][i-1])
             ley_lines.append(temp_list)
+
+        # Extracting the \ ley lines
+        for i in range(1, self.size + 2):
+            temp_list = []
+            for j in range(max(0, i - 2), num_rows - 1):
+                temp_list.append(rows[j][len(rows[j]) - i])
+            if i != 1:
+                temp_list.append(rows[num_rows - 1][num_rows - i])
+            ley_lines.append(temp_list)
+        rows.reverse()
+        ley_lines.extend(rows)
         return ley_lines
 
-    def create_rows(self) -> List[List[Union[str, int]]]:
+    def extract_rows(self) -> List[List[Union[str, int]]]:
         """
         Create the rows (horizontal ley-lines) from self.cells.
         """
