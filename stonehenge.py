@@ -37,7 +37,7 @@ class StonehengeGame(Game):
         """
         Return whether or not this game is over at state.
         """
-        scores = self.current_state.ley_line_scores
+        scores = state.ley_line_scores
         return (scores.count(1) >= len(scores) / 2) or (scores.count(2) >=
                                                         len(scores) / 2)
 
@@ -108,10 +108,8 @@ class StonehengeState(GameState):
         """
         Return a string representation of the current state of the game.
 
-        >>> cells = [chr(i) for i in range(ord('A'), ord('L'))]
-        >>> cells.append(1)
-        >>> a = StonehengeState(True, cells, [1, 2, 1, 1, 2, 1, \
-1, '@', 1, 2, '@', 1])
+        >>> cells = [chr(i) for i in range(ord('A'), ord('M'))]
+        >>> a = StonehengeState(True, cells, ['@'] * 12)
         >>> print(a)
         """
         rows = self.extract_rows(self.cells)
@@ -122,30 +120,37 @@ class StonehengeState(GameState):
         row_line_scores = self.ley_line_scores[section_length * 2:]
         row_line_scores.reverse()
         down_left_scores = self.ley_line_scores[:section_length]
-        down_right_scores = self.ley_line_scores[
-                            section_length:section_length * 2]
+        down_right_scores = self.ley_line_scores[section_length:section_length
+                                                 * 2]
         down_right_scores.reverse()
 
         str_return = ' '*(((len(rows_to_str)-2) * 2) + 6)
         for i in range(2):
             str_return += f'{down_left_scores[i]}   '
-        str_return += '\n'
+        str_return = str_return.rstrip() + '\n'
         str_return += ' '*(((len(rows_to_str)-2) * 2) + 5) + '/   '*2
+        str_return = str_return.rstrip()
 
         for i in range(len(rows_to_str) - 1):
             row = rows_to_str[i]
             temp = ''
             for cell in row:
                 temp += cell + ' - '
-            str_return = str_return + '\n' + ' '*(((len(rows_to_str)-2)-i) * 2) + f'{row_line_scores[i]} - ' + temp.rstrip(' - ')
+            str_return = str_return + '\n' + ' '*(((len(rows_to_str)-2)-i) * 2)\
+                + f'{row_line_scores[i]} - ' + temp.rstrip(' - ')
             if i != len(rows_to_str) - 2:
                 str_return += f'   {down_left_scores[i + 2]}'
-            str_return += '\n' + '-'*20
+                str_return += '\n' + ' '*((((len(rows_to_str)-2)-i) * 2) + 3) +\
+                    '/ \\ ' * len(row) + '/'
+            else:
+                str_return += '\n' + '     \\' + ' / \\' * (len(row) - 1)
         temp = ''
         num_spaces = ((len(rows_to_str)-2) - (len(rows_to_str) - 3)) * 2
         for cell in rows_to_str[-1]:
             temp += cell + ' - '
-        str_return = str_return + '\n' + ' ' * num_spaces + f'{row_line_scores[-1]} - ' + temp.rstrip(' - ') + f'   {down_right_scores[-1]}'
+        str_return = str_return + '\n' + ' ' * num_spaces + \
+            f'{row_line_scores[-1]} - ' + temp.rstrip(' - ') + \
+            f'   {down_right_scores[-1]}'
 
         str_return += '\n' + ' ' * (num_spaces + 5) + '\\   '*self.size
         str_return = str_return.rstrip()
@@ -159,7 +164,12 @@ class StonehengeState(GameState):
         """
         Return all possible moves that can be applied to this state.
         """
-        return [cell for cell in self.cells if type(cell) is str]
+        moves = []
+        scores = self.ley_line_scores
+        if not((scores.count(1) >= len(scores) / 2) or
+               (scores.count(2) >= len(scores) / 2)):
+            moves = [cell for cell in self.cells if type(cell) is str]
+        return moves
 
     def make_move(self, move: Any) -> 'StonehengeState':
         """
@@ -201,6 +211,10 @@ class StonehengeState(GameState):
         """
         Return a representation of this state (which can be used for
         equality testing).
+
+        >>> cells = [chr(i) for i in range(ord('A'), ord('M'))]
+        >>> a = StonehengeState(False, cells, ['@'] * 12)
+        >>> a
         """
         return str(self) + "\nP1's turn: {}".format(self.p1_turn)
 
