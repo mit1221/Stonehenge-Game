@@ -227,15 +227,14 @@ class StonehengeState(GameState):
         player = int(self.get_current_player_name()[1])
         if scores.count(player) >= len(scores) / 2:
             return self.WIN
-
-        # if is_pos_square(self.current_total):
-        #     return self.WIN
-        # elif all([is_pos_square(self.current_total - n ** 2)
-        #           for n in range(1, self.current_total + 1)
-        #           if n ** 2 < self.current_total]):
-        #     return self.LOSE
-        #
-        # return self.DRAW
+        else:
+            temp_list = []
+            for move in self.get_possible_moves():
+                temp_state = self.make_move(move)
+                scores = temp_state.ley_line_scores
+                player = int(temp_state.get_current_player_name()[1])
+                temp_list.append(scores.count(player) >= len(scores) / 2)
+            return self.LOSE if all(temp_list) else self.DRAW
 
     def get_ley_lines(self, cells: List[Union[str, int]]) -> \
             List[List[Union[str, int]]]:
