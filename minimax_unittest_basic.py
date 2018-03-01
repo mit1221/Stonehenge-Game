@@ -43,7 +43,6 @@ STONEHENGE_MINIMAX_BOARD = """\
         2   2   1
 """
 
-
 class MinimaxUnitTests(unittest.TestCase):
     def test_iterative_subtract_square_4(self):
         """
@@ -83,7 +82,7 @@ class MinimaxUnitTests(unittest.TestCase):
                          "SubtractSquare with " +
                          "a value of {} should result in a move in {} " +
                          "being returned, but {} was returned instead.").format(
-                            6, expected_moves, move_chosen
+                            18, expected_moves, move_chosen
                          ))
 
     def test_iterative_stonehenge_one_winning_move(self):
@@ -106,7 +105,7 @@ class MinimaxUnitTests(unittest.TestCase):
                         ("Calling iterative minimax on a game of Stonehenge" +
                          " with " +
                          "the following board should return a move in {} " +
-                         "but got {} instead.\n{}").format(
+                          "but got {} instead.\n{}").format(
                              expected_moves, move_chosen,
                              STONEHENGE_MINIMAX_BOARD
                          ))
@@ -176,7 +175,7 @@ class MinimaxUnitTests(unittest.TestCase):
                          "SubtractSquare with " +
                          "a value of {} should result in a move in {} " +
                          "being returned, but {} was returned instead.").format(
-                            6, expected_moves, move_chosen
+                            18, expected_moves, move_chosen
                         ))
 
     def test_recursive_stonehenge_one_winning_move(self):
@@ -197,10 +196,10 @@ class MinimaxUnitTests(unittest.TestCase):
         expected_moves = [game.str_to_move("H")]
         self.assertTrue(move_chosen in expected_moves,
                         (
-                            "Calling recursive minimax on a game of Stonehenge"
-                            + " with " +
-                            "the following board should return a move in {} " +
-                            "but got {} instead.\n{}").format(
+                        "Calling recursive minimax on a game of Stonehenge" +
+                        " with " +
+                        "the following board should return a move in {} " +
+                        "but got {} instead.\n{}").format(
                             expected_moves, move_chosen,
                             STONEHENGE_MINIMAX_BOARD
                         ))
@@ -226,13 +225,12 @@ class MinimaxUnitTests(unittest.TestCase):
 
         self.assertEqual(move_chosen, expected_move,
                          (
-                            "Calling recursive minimax on a game of Stonehenge"
-                            + " with " +
-                            "the following board should return the move {} " +
-                            "but got {} instead.\n{}").format(
+                         "Calling recursive minimax on a game of Stonehenge" +
+                         " with " +
+                         "the following board should return the move {} " +
+                         "but got {} instead.\n{}").format(
                              expected_move, move_chosen, str(new_state)
                          ))
-
 
 if __name__ == "__main__":
     unittest.main()

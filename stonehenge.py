@@ -223,7 +223,19 @@ class StonehengeState(GameState):
         Return an estimate in interval [LOSE, WIN] of best outcome the current
         player can guarantee from state self.
         """
-        pass
+        scores = self.ley_line_scores
+        player = int(self.get_current_player_name()[1])
+        if scores.count(player) >= len(scores) / 2:
+            return self.WIN
+
+        # if is_pos_square(self.current_total):
+        #     return self.WIN
+        # elif all([is_pos_square(self.current_total - n ** 2)
+        #           for n in range(1, self.current_total + 1)
+        #           if n ** 2 < self.current_total]):
+        #     return self.LOSE
+        #
+        # return self.DRAW
 
     def get_ley_lines(self, cells: List[Union[str, int]]) -> \
             List[List[Union[str, int]]]:
