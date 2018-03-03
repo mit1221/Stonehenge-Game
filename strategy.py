@@ -5,13 +5,16 @@ NOTE: Make sure this file adheres to python-ta.
 Adjust the type annotations as needed, and implement both a recursive
 and an iterative version of minimax.
 """
-from typing import Any, List
-from game import *
-from game_state import *
+
+from typing import Any
+from game import Game
+from game_state import GameState
+from a2_stack import Stack
+from a2_tree import TreeNode
 
 
 # TODO: Adjust the type annotation as needed.
-def interactive_strategy(game: Any) -> Any:
+def interactive_strategy(game: Game) -> Any:
     """
     Return a move for game through interactively asking the user for input.
     """
@@ -19,7 +22,7 @@ def interactive_strategy(game: Any) -> Any:
     return game.str_to_move(move)
 
 
-def rough_outcome_strategy(game: Any) -> Any:
+def rough_outcome_strategy(game: Game) -> Any:
     """
     Return a move for game by picking a move which results in a state with
     the lowest rough_outcome() for the opponent.
@@ -59,7 +62,7 @@ def rough_outcome_strategy(game: Any) -> Any:
 
 
 # TODO: Implement a recursive version of the minimax strategy.
-def minimax_strategy_r(game: Any) -> Any:
+def minimax_strategy_r(game: Game) -> Any:
     """
     Return a move for game by using recursive minimax.
     """
@@ -69,7 +72,7 @@ def minimax_strategy_r(game: Any) -> Any:
     return moves[scores.index(min(scores))]
 
 
-def get_score(game: Any, state: Any) -> int:
+def get_score(game: Game, state: GameState) -> int:
     """
     Get all the scores for the possible moves.
     """
@@ -90,23 +93,56 @@ def get_score(game: Any, state: Any) -> int:
         elif game.is_winner(other_player):
             game.current_state = curr_state
             return -1
-        else:
-            game.current_state = curr_state
-            return 0
-    else:
-        a = [get_score(game, state.make_move(move)) for move in
-             state.get_possible_moves()]
-        return max([-1 * score for score in a])
+        game.current_state = curr_state
+        return 0
+    a = [get_score(game, state.make_move(move)) for move in
+         state.get_possible_moves()]
+    return max([-1 * score for score in a])
 
 
 # TODO: Implement an iterative version of the minimax strategy.
-def minimax_strategy_i(game: Any) -> Any:
+def minimax_strategy_i(game: Game) -> Any:
     """
-    Return a move for game by using recursive minimax.
+    Return a move for game by using iterative minimax.
     """
+    curr_state = game.current_state
+    top_node = TreeNode(curr_state)
+    s = Stack()
+    s.add(top_node)
+    while not s.is_empty():
+        removed_node = s.remove()
+        state = removed_node.value
+        if game.is_over(state):
+            if state.p1_turn:
+                current_player = 'p1'
+                other_player = 'p2'
+            else:
+                current_player = 'p2'
+                other_player = 'p1'
+
+            game.current_state = state
+            if game.is_winner(current_player):
+                removed_node.score = 1
+            elif game.is_winner(other_player):
+                removed_node.score = -1
+            else:
+                removed_node.score = 0
+            game.current_state = curr_state
+        else:
+            if removed_node.children == []:
+                s.add(removed_node)
+                for move in state.get_possible_moves():
+                    child_node = TreeNode(state.make_move(move))
+                    removed_node.children.append(child_node)
+                    s.add(child_node)
+            else:
+                removed_node.score = max([-1 * child.score for child in
+                                          removed_node.children])
+    moves = curr_state.get_possible_moves()
+    child_scores = [child.score for child in top_node.children]
+    return moves[child_scores.index(top_node.score * -1)]
 
 
 if __name__ == "__main__":
     from python_ta import check_all
-
     check_all(config="a2_pyta.txt")
