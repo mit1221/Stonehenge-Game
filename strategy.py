@@ -6,11 +6,71 @@ Adjust the type annotations as needed, and implement both a recursive
 and an iterative version of minimax.
 """
 
-from typing import Any
+from typing import Any, Optional
 from game import Game
 from game_state import GameState
-from a2_stack import Stack
-from a2_tree import TreeNode
+
+
+class TreeNode:
+    """
+    A bare-bones Tree ADT that identifies the root with the entire tree.
+    """
+
+    def __init__(self, value: GameState, children: Optional[GameState] = None,
+                 score: Optional[int] = None) -> None:
+        """
+        Create Tree self with content value and 0 or more children
+        """
+        self.value = value
+        self.children = children[:] if children is not None else []
+        self.score = score
+
+
+class Stack:
+    """ Last-in, first-out (LIFO) stack.
+    """
+
+    def __init__(self) -> None:
+        """ Create a new, empty Stack self.
+
+        >>> s = Stack()
+        """
+        self._contains = []
+
+    def add(self, obj: TreeNode) -> None:
+        """ Add object obj to top of Stack self.
+
+        >>> s = Stack()
+        >>> s.add(5)
+        """
+        self._contains.append(obj)
+
+    def remove(self) -> TreeNode:
+        """
+        Remove and return top element of Stack self.
+
+        Assume Stack self is not emp.
+
+        >>> s = Stack()
+        >>> s.add(5)
+        >>> s.add(7)
+        >>> s.remove()
+        7
+        """
+        return self._contains.pop()
+
+    def is_empty(self) -> bool:
+        """
+        Return whether Stack self is empty.
+
+        >>> s = Stack()
+        >>> s.is_empty()
+        True
+        >>> s.add(5)
+        >>> s.is_empty()
+        False
+        """
+        return len(self._contains) == 0
 
 
 # TODO: Adjust the type annotation as needed.
@@ -22,7 +82,7 @@ def interactive_strategy(game: Game) -> Any:
     return game.str_to_move(move)
 
 
-def rough_outcome_strategy(game: Game) -> Any:
+def rough_outcome_strategy(game: Any) -> Any:
     """
     Return a move for game by picking a move which results in a state with
     the lowest rough_outcome() for the opponent.
@@ -62,7 +122,7 @@ def rough_outcome_strategy(game: Game) -> Any:
 
 
 # TODO: Implement a recursive version of the minimax strategy.
-def minimax_strategy_r(game: Game) -> Any:
+def minimax_strategy_r(game: Any) -> Any:
     """
     Return a move for game by using recursive minimax.
     """
@@ -128,16 +188,15 @@ def minimax_strategy_i(game: Game) -> Any:
             else:
                 removed_node.score = 0
             game.current_state = curr_state
+        elif removed_node.children == []:
+            s.add(removed_node)
+            for move in state.get_possible_moves():
+                child_node = TreeNode(state.make_move(move))
+                removed_node.children.append(child_node)
+                s.add(child_node)
         else:
-            if removed_node.children == []:
-                s.add(removed_node)
-                for move in state.get_possible_moves():
-                    child_node = TreeNode(state.make_move(move))
-                    removed_node.children.append(child_node)
-                    s.add(child_node)
-            else:
-                removed_node.score = max([-1 * child.score for child in
-                                          removed_node.children])
+            removed_node.score = max([-1 * child.score for child in
+                                      removed_node.children])
     moves = curr_state.get_possible_moves()
     child_scores = [child.score for child in top_node.children]
     return moves[child_scores.index(top_node.score * -1)]
