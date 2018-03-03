@@ -24,8 +24,8 @@ playable_games = {'s': SubtractSquareGame,
 # 'mi' should map to your iterative implementation of minimax
 usable_strategies = {'i': interactive_strategy,
                      'ro': rough_outcome_strategy,
-                     'mr': None,
-                     'mi': None}
+                     'mr': minimax_strategy_r,
+                     'mi': minimax_strategy_i}
 
 
 class GameInterface:

@@ -224,17 +224,32 @@ class StonehengeState(GameState):
         player can guarantee from state self.
         """
         scores = self.ley_line_scores
-        player = int(self.get_current_player_name()[1])
+        if self.p1_turn:
+            player, other_player = 1, 2
+        else:
+            player, other_player = 2, 1
+
         if scores.count(player) >= len(scores) / 2:
             return self.WIN
-        else:
-            temp_list = []
-            for move in self.get_possible_moves():
-                temp_state = self.make_move(move)
-                scores = temp_state.ley_line_scores
-                player = int(temp_state.get_current_player_name()[1])
-                temp_list.append(scores.count(player) >= len(scores) / 2)
-            return self.LOSE if all(temp_list) else self.DRAW
+        elif scores.count(other_player) >= len(scores) / 2:
+            return self.LOSE
+
+        temp_list = []
+        for move in self.get_possible_moves():
+            temp_state = self.make_move(move)
+
+            scores = temp_state.ley_line_scores
+            if scores.count(player) >= len(scores) / 2:
+                return self.WIN
+
+            temp_list2 = []
+            for move2 in temp_state.get_possible_moves():
+                temp_state2 = temp_state.make_move(move2)
+                scores = temp_state2.ley_line_scores
+                temp_list2.append(scores.count(other_player) >=
+                                  len(scores) / 2)
+            temp_list.append(any(temp_list2))
+        return self.LOSE if all(temp_list) else self.DRAW
 
     def get_ley_lines(self, cells: List[Union[str, int]]) -> \
             List[List[Union[str, int]]]:

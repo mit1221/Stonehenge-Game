@@ -5,7 +5,9 @@ NOTE: Make sure this file adheres to python-ta.
 Adjust the type annotations as needed, and implement both a recursive
 and an iterative version of minimax.
 """
-from typing import Any
+from typing import Any, List
+from game import *
+from game_state import *
 
 
 # TODO: Adjust the type annotation as needed.
@@ -55,9 +57,53 @@ def rough_outcome_strategy(game: Any) -> Any:
     # Return the move that resulted in the best rough_outcome
     return best_move
 
+
 # TODO: Implement a recursive version of the minimax strategy.
+def minimax_strategy_r(game: Any) -> Any:
+    """
+    Return a move for game by using recursive minimax.
+    """
+    moves = game.current_state.get_possible_moves()
+    scores = [get_score(game, game.current_state.make_move(move)) for move in
+              moves]
+    return moves[scores.index(min(scores))]
+
+
+def get_score(game: Any, state: Any) -> int:
+    """
+    Get all the scores for the possible moves.
+    """
+    curr_state = game.current_state
+
+    if state.p1_turn:
+        current_player = 'p1'
+        other_player = 'p2'
+    else:
+        current_player = 'p2'
+        other_player = 'p1'
+
+    if game.is_over(state):
+        game.current_state = state
+        if game.is_winner(current_player):
+            game.current_state = curr_state
+            return 1
+        elif game.is_winner(other_player):
+            game.current_state = curr_state
+            return -1
+        else:
+            game.current_state = curr_state
+            return 0
+    else:
+        a = [get_score(game, state.make_move(move)) for move in
+             state.get_possible_moves()]
+        return max([-1 * score for score in a])
+
 
 # TODO: Implement an iterative version of the minimax strategy.
+def minimax_strategy_i(game: Any) -> Any:
+    """
+    Return a move for game by using recursive minimax.
+    """
 
 
 if __name__ == "__main__":
