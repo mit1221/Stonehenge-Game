@@ -6,20 +6,38 @@ Adjust the type annotations as needed, and implement both a recursive
 and an iterative version of minimax.
 """
 
-from typing import Any, Optional
+from typing import Any, Optional, List
 from game import Game
 from game_state import GameState
 
 
 class TreeNode:
     """
-    A bare-bones Tree ADT that identifies the root with the entire tree.
-    """
+    A TreeNode that stores a game's state and all possible moves from that
+    state.
 
-    def __init__(self, value: GameState, children: Optional[GameState] = None,
-                 score: Optional[int] = None) -> None:
+    value - the value of the TreeNode, which is a GameState
+    children - the possible moves from the GameState value
+    score - the score of the current state
+    """
+    value: GameState
+    children: Optional[List["TreeNode"]]
+    score: Optional[int]
+
+    def __init__(self, value: GameState, children: Optional[List["TreeNode"]] =
+                 None, score: Optional[int] = None) -> None:
         """
-        Create Tree self with content value and 0 or more children
+        Create TreeNode self with content value, 0 or more children,
+        and a score.
+
+        >>> state = GameState(True)
+        >>> t1 = TreeNode(state, score=1)
+        >>> t1.value == state
+        True
+        >>> t1.children
+        []
+        >>> t1.score
+        1
         """
         self.value = value
         self.children = children[:] if children is not None else []
@@ -40,8 +58,10 @@ class Stack:
     def add(self, obj: TreeNode) -> None:
         """ Add object obj to top of Stack self.
 
+        >>> state = GameState(True)
+        >>> t1 = TreeNode(state, score=1)
         >>> s = Stack()
-        >>> s.add(5)
+        >>> s.add(t1)
         """
         self._contains.append(obj)
 
@@ -49,13 +69,14 @@ class Stack:
         """
         Remove and return top element of Stack self.
 
-        Assume Stack self is not emp.
+        Assume Stack self is not empty.
 
+        >>> state = GameState(True)
+        >>> t1 = TreeNode(state, score=1)
         >>> s = Stack()
-        >>> s.add(5)
-        >>> s.add(7)
-        >>> s.remove()
-        7
+        >>> s.add(t1)
+        >>> s.remove() == t1
+        True
         """
         return self._contains.pop()
 
@@ -63,10 +84,12 @@ class Stack:
         """
         Return whether Stack self is empty.
 
+        >>> state = GameState(True)
+        >>> t1 = TreeNode(state, score=1)
         >>> s = Stack()
         >>> s.is_empty()
         True
-        >>> s.add(5)
+        >>> s.add(t1)
         >>> s.is_empty()
         False
         """
@@ -149,12 +172,12 @@ def get_score(game: Game, state: GameState) -> int:
         game.current_state = state
         if game.is_winner(current_player):
             game.current_state = curr_state
-            return 1
+            return GameState.WIN
         elif game.is_winner(other_player):
             game.current_state = curr_state
-            return -1
+            return GameState.LOSE
         game.current_state = curr_state
-        return 0
+        return GameState.DRAW
     a = [get_score(game, state.make_move(move)) for move in
          state.get_possible_moves()]
     return max([-1 * score for score in a])
@@ -182,11 +205,11 @@ def minimax_strategy_i(game: Game) -> Any:
 
             game.current_state = state
             if game.is_winner(current_player):
-                removed_node.score = 1
+                removed_node.score = GameState.WIN
             elif game.is_winner(other_player):
-                removed_node.score = -1
+                removed_node.score = GameState.LOSE
             else:
-                removed_node.score = 0
+                removed_node.score = GameState.DRAW
             game.current_state = curr_state
         elif removed_node.children == []:
             s.add(removed_node)

@@ -13,6 +13,9 @@ class StonehengeGame(Game):
     size - the side length of the board
     current_state - the current state of the game
     """
+    size: int
+    current_state: 'StonehengeState'
+
     def __init__(self, p1_starts: bool) -> None:
         """
         Initialize this Game, using p1_starts to find who the first player is.
@@ -55,11 +58,10 @@ class StonehengeGame(Game):
         Return the move that string represents. If string is not a move,
         return some invalid move.
         """
-        if type(string) is str:
-            move = string.strip().upper()
-            cells = self.create_cells()
-            if move in cells:
-                return move
+        move = string.strip().upper()
+        cells = self.create_cells()
+        if move in cells:
+            return move
         return None
 
     def create_cells(self) -> List[str]:
@@ -81,14 +83,29 @@ class StonehengeState(GameState):
     or 1 or 2
     ley_line_scores - a list of the scores for each ley-line, where each element
     is either 1, 2, or '@' if the ley-line is unclaimed. The first element
-    coressponds to the top-most left ley-line and the next ley-line in the
+    coressponds to the topleft-most ley-line and the next ley-line in the
     clockwise direction coressponds to the next element in the list.
     """
+    size: int
+    cells: List[Union[str, int]]
+    ley_line_scores: List[Union[str, int]]
+
     def __init__(self, is_p1_turn: bool, cells: List[Union[str, int]],
                  ley_line_scores: List[Union[str, int]]) -> None:
         """
         Initialize this game state and set the current player based on
         is_p1_turn.
+
+        >>> cells = [chr(i) for i in range(ord('A'), ord('H'))]
+        >>> state = StonehengeState(True, cells, ['@'] * 9)
+        >>> state.p1_turn
+        True
+        >>> state.cells
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        >>> state.ley_line_scores
+        ['@', '@', '@', '@', '@', '@', '@', '@', '@']
+        >>> state.size
+        2
         """
         super().__init__(is_p1_turn)
         if len(cells) == 3:
@@ -107,10 +124,6 @@ class StonehengeState(GameState):
     def __str__(self) -> str:
         """
         Return a string representation of the current state of the game.
-
-        >>> cells = [chr(i) for i in range(ord('A'), ord('M'))]
-        >>> a = StonehengeState(True, cells, ['@'] * 12)
-        >>> print(a)
         """
         rows = self.extract_rows(self.cells)
         rows_to_str = []
@@ -163,6 +176,12 @@ class StonehengeState(GameState):
     def get_possible_moves(self) -> List[str]:
         """
         Return all possible moves that can be applied to this state.
+
+        >>> cells = [2, 2, 'C', 1, 'E', 1, 'G']
+        >>> a = StonehengeState(True, cells, [2, 1, '@', 2, '@', 1,\
+        1, '@', 2])
+        >>> a.get_possible_moves()
+        ['C', 'E', 'G']
         """
         moves = []
         scores = self.ley_line_scores
@@ -211,10 +230,6 @@ class StonehengeState(GameState):
         """
         Return a representation of this state (which can be used for
         equality testing).
-
-        >>> cells = [chr(i) for i in range(ord('A'), ord('M'))]
-        >>> a = StonehengeState(False, cells, ['@'] * 12)
-        >>> a
         """
         return str(self) + "\nP1's turn: {}".format(self.p1_turn)
 
@@ -222,6 +237,17 @@ class StonehengeState(GameState):
         """
         Return an estimate in interval [LOSE, WIN] of best outcome the current
         player can guarantee from state self.
+
+        >>> cells = [chr(i) for i in range(ord('A'), ord('H'))]
+        >>> a = StonehengeState(True, cells, ['@'] * 9)
+        >>> score = a.DRAW
+        >>> a.rough_outcome() == score
+        True
+        >>> cells = ['A', 'B', 'C']
+        >>> a = StonehengeState(True, cells, ['@'] * 6)
+        >>> score = a.WIN
+        >>> a.rough_outcome() == score
+        True
         """
         scores = self.ley_line_scores
         if self.p1_turn:
@@ -273,8 +299,8 @@ class StonehengeState(GameState):
         [['A'], ['B', 'C'], ['B'], ['A', 'C'], ['C'], ['A', 'B']]
         """
         ley_lines = []
-        ley_lines.extend(self.extract_diagonal_ley_lines(cells, '/'))
-        ley_lines.extend(self.extract_diagonal_ley_lines(cells, '\\'))
+        ley_lines.extend(self.extract_diagonal_ley_lines(cells, 'left'))
+        ley_lines.extend(self.extract_diagonal_ley_lines(cells, 'right'))
         ley_lines.extend(list(reversed(self.extract_rows(cells))))
         return ley_lines
 
@@ -282,6 +308,11 @@ class StonehengeState(GameState):
             List[List[Union[str, int]]]:
         """
         Return the rows (horizontal ley-lines) from cells.
+
+        >>> cells = [chr(i) for i in range(ord('A'), ord('H'))]
+        >>> a = StonehengeState(True, cells, ['@'] * 9)
+        >>> a.extract_rows(cells)
+        [['A', 'B'], ['C', 'D', 'E'], ['F', 'G']]
         """
         n = self.size
         list_return = []
@@ -295,14 +326,21 @@ class StonehengeState(GameState):
     def extract_diagonal_ley_lines(self, cells: List[Union[str, int]],
                                    type_: str) -> List[List[Union[str, int]]]:
         """
-        Return the down-left or down-right ley-lines from cells if type is '/'
-        or '\' respectively.
+        Return the down-left or down-right ley-lines from cells if type is
+        'left' or 'right' respectively.
+
+        >>> cells = [chr(i) for i in range(ord('A'), ord('H'))]
+        >>> a = StonehengeState(True, cells, ['@'] * 9)
+        >>> a.extract_diagonal_ley_lines(cells, 'left')
+        [['A', 'C'], ['B', 'D', 'F'], ['E', 'G']]
+        >>> a.extract_diagonal_ley_lines(cells, 'right')
+        [['B', 'E'], ['A', 'D', 'G'], ['C', 'F']]
         """
         rows = self.extract_rows(cells)
         num_rows = len(rows)
         ley_lines = []
 
-        if type_ == '/':
+        if type_ == 'left':
             n = 1
             k = 1
             m = -1
